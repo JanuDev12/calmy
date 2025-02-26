@@ -1,5 +1,4 @@
 
-import { easeIn } from 'motion';
 import './App.css'
 import { motion } from "motion/react";
 import { useEffect, useMemo, useState } from 'react';
@@ -68,7 +67,7 @@ function App() {
       variants[config.name] = {
         transform: config.transform,
         // Motion expects seconds
-        transition: { duration: config.duration / 1000, ease: "lineal"},
+        transition: { duration: config.duration / 1000},
       };
       return variants;
     }, {});
@@ -109,7 +108,6 @@ function App() {
             variants={animationVariants}
             animate={phase}
             initial={{transform: "scale(1)" }}
-            transition={}
           ></motion.div>
         </motion.div>
         <div className="w-xl mt-20 flex justify-between">

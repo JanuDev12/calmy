@@ -1,7 +1,7 @@
 
 import './App.css'
 import { motion } from "motion/react";
-import { useEffect, useMemo, useState } from 'react';
+import {useEffect, useMemo, useRef, useState } from 'react';
 
 type Phase = {
   name: string;
@@ -13,17 +13,17 @@ type Phase = {
 const PHASES: Phase[] = [
   {
     name: "inhale",
-    duration: 5000,
+    duration: 4000,
     transform: "scale(1.5)",
   },
   {
     name: "inhaleHold",
-    duration: 0,
+    duration: 7000,
     transform: "scale(1.5)",
   },
   {
     name: "exhale",
-    duration: 5000,
+    duration: 8000,
     transform: "scale(1)",
   },
   {
@@ -60,6 +60,9 @@ function App() {
   // Initial Phase (inhale)
   const [phase, setPhase] = useState<Phase['name']>(PHASES[0].name);
 
+  const [isRunning, setIsRunning] = useState(false);
+  const timerRef = useRef(0);
+
 
   // Creating animations for each phase
   const animationVariants = useMemo(() => {
@@ -73,46 +76,59 @@ function App() {
     }, {});
   }, []);
 
+
+  const resetBreathing = () => {
+    if (isRunning) {
+      if (timerRef.current) clearTimeout(timerRef.current);
+      setPhase(PHASES[0].name);
+    }
+    setIsRunning(false);
+  };
  
 
   // useEffect for transitioning to each phase of breathing
   useEffect(() => {
-    const currentPhase = PHASE_INDEX.get(phase) ?? -1;
-    if (currentPhase === -1) return;
+    if (!isRunning) return;
 
-    if(PHASES[currentPhase].duration === 0) {
-      // If the current phase is 0ms skip to the next
+    const currentPhase = PHASE_INDEX.get(phase)!;
 
-      const nextPhase = getNextPhase(currentPhase);
+    const {duration} = PHASES[currentPhase];
+
+    timerRef.current = setTimeout(() => {
+       const nextPhase = getNextPhase(currentPhase);
        setPhase(PHASES[nextPhase].name);
-    } else {
-      // Timer for calculate when transitioning to nextPhase
+    }, duration);
 
-      const timer = setTimeout(() => {
-        const nextPhase = getNextPhase(currentPhase);
-        setPhase(PHASES[nextPhase].name);
-      }, PHASES[currentPhase].duration);
-      return () => clearTimeout(timer);
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
     }
     
-  }, [phase]);
+  }, [phase, isRunning]);
 
   return (
     <>
       <div className="w-full h-screen bg-amber-100 flex flex-col justify-center items-center">
-        <motion.div
-          className="w-2xl h-1/2 border-2 border-red-300 flex items-center"
-        >
+        <motion.div className="w-2xl h-1/2 border-2 border-red-300 flex items-center">
           <motion.div
             className="mx-auto size-32 rounded-full border-2 bg-blue-300"
             variants={animationVariants}
-            animate={phase}
-            initial={{transform: "scale(1)" }}
+            animate={isRunning ? phase : undefined}
+            initial={{ transform: "scale(1)" }}
           ></motion.div>
         </motion.div>
         <div className="w-xl mt-20 flex justify-between">
-          <button className="cursor-pointer">Start</button>
-          <button className="cursor-pointer">Pause</button>
+          <button
+            className="cursor-pointer"
+            onClick={() => {
+              if (isRunning) {
+                resetBreathing();
+              } else {
+                setIsRunning(true);
+              }
+            }}
+          >
+            {isRunning ? "Pause" : "Play"}
+          </button>
           <span>Fase actual de la respiracion: {phase}</span>
         </div>
       </div>

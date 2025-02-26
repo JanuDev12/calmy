@@ -1,38 +1,65 @@
 
+import { easeIn } from 'motion';
 import './App.css'
 import { motion } from "motion/react";
-import Breathcircle from './components/Breathcircle';
 import { useEffect, useMemo, useState } from 'react';
 
+type Phase = {
+  name: string;
+  duration: number;
+  transform: string;
+}
+
 // Define the phases of breathing
-const PHASES = [
+const PHASES: Phase[] = [
   {
     name: "inhale",
-    duration: 4000,
+    duration: 5000,
     transform: "scale(1.5)",
   },
   {
     name: "inhaleHold",
-    duration: 4000,
+    duration: 0,
     transform: "scale(1.5)",
   },
   {
     name: "exhale",
-    duration: 4000,
+    duration: 5000,
     transform: "scale(1)",
   },
   {
     name: "exhaleHold",
-    duration: 4000,
+    duration: 0,
     transform: "scale(1)",
   },
 ];
 
 
+// Creating map for more efficiency
+const PHASE_INDEX = new Map(
+  PHASES.map((phase, index) => [phase.name, index])
+);
+
+function getNextPhase(currentPhase: number): number {
+  let i = 0;
+  let nextPhase = currentPhase;
+
+  // Loop for skip to the next phase if its 0ms
+  do {
+    nextPhase = (nextPhase + 1) % PHASES.length;
+    i++
+    if(i > PHASES.length) {
+      console.log("Infnite Loop detected")
+    }
+  } while (PHASES[nextPhase].duration === 0);
+    
+    return nextPhase;
+  }
+
 function App() {
 
-  // Initial Phase on inhale
-  const [phase, setPhase] = useState(PHASES[0].name);
+  // Initial Phase (inhale)
+  const [phase, setPhase] = useState<Phase['name']>(PHASES[0].name);
 
 
   // Creating animations for each phase
@@ -47,18 +74,28 @@ function App() {
     }, {});
   }, []);
 
+ 
 
   // useEffect for transitioning to each phase of breathing
   useEffect(() => {
-    const currentPhase = PHASES.findIndex(
-      (config) => config.name === phase
-    );
-    const nextPhase = (currentPhase + 1) % PHASES.length;
-    // Timer for calculate when transitioning to nextPhase
-    const timer = setTimeout(() => {
-      setPhase(PHASES[nextPhase].name);
-    }, PHASES[currentPhase].duration);
-    return () => clearTimeout(timer);
+    const currentPhase = PHASE_INDEX.get(phase) ?? -1;
+    if (currentPhase === -1) return;
+
+    if(PHASES[currentPhase].duration === 0) {
+      // If the current phase is 0ms skip to the next
+
+      const nextPhase = getNextPhase(currentPhase);
+       setPhase(PHASES[nextPhase].name);
+    } else {
+      // Timer for calculate when transitioning to nextPhase
+
+      const timer = setTimeout(() => {
+        const nextPhase = getNextPhase(currentPhase);
+        setPhase(PHASES[nextPhase].name);
+      }, PHASES[currentPhase].duration);
+      return () => clearTimeout(timer);
+    }
+    
   }, [phase]);
 
   return (
@@ -72,7 +109,7 @@ function App() {
             variants={animationVariants}
             animate={phase}
             initial={{transform: "scale(1)" }}
-            transition={{ease: 'linear'}}
+            transition={}
           ></motion.div>
         </motion.div>
         <div className="w-xl mt-20 flex justify-between">

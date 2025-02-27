@@ -108,14 +108,15 @@ function App() {
   return (
     <>
       <div className="w-full h-screen bg-amber-100 flex flex-col justify-center items-center">
-        <motion.div className="w-2xl h-1/2 border-2 border-red-300 flex items-center">
+        <div className="w-2xl h-1/2 border-2 border-red-300 flex items-center">
           <motion.div
             className="mx-auto size-32 rounded-full border-2 bg-blue-300"
             variants={animationVariants}
             animate={isRunning ? phase : undefined}
             initial={{ transform: "scale(1)" }}
+            transition={{ type: "tween" }}
           ></motion.div>
-        </motion.div>
+        </div>
         <div className="w-xl mt-20 flex justify-between">
           <button
             className="cursor-pointer"

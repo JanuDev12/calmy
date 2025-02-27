@@ -1,5 +1,6 @@
 import { motion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Button } from "./ui/button";
 
 type Phase = {
   name: string;
@@ -101,7 +102,7 @@ function BreathCircle() {
       <div className="w-full h-screen bg-amber-100 flex flex-col justify-center items-center">
         <div className="w-2xl h-1/2 border-2 border-red-300 flex items-center">
           <motion.div
-            className="mx-auto size-32 rounded-full border-2 bg-blue-300"
+            className="mx-auto size-32 rounded-full bg-blue-300"
             variants={animationVariants}
             animate={isRunning ? phase : undefined}
             initial={{ transform: "scale(1)" }}
@@ -109,7 +110,7 @@ function BreathCircle() {
           ></motion.div>
         </div>
         <div className="w-xl mt-20 flex justify-between">
-          <button
+          <Button
             className="cursor-pointer"
             onClick={() => {
               if (isRunning) {
@@ -120,7 +121,7 @@ function BreathCircle() {
             }}
           >
             {isRunning ? "Pause" : "Play"}
-          </button>
+          </Button>
           <span>Fase actual de la respiracion: {phase}</span>
         </div>
       </div>

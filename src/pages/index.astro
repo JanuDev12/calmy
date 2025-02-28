@@ -1,64 +1,13 @@
 ---
-import BreathCircle from '../components/BreathCircle';
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
-
-import IconVolumeOff from '../components/IconVolumeOff'
-
-
+import BreathingApp from "../components/BreathingApp";
+import Welcome from "../components/Welcome.astro";
+import Layout from "../layouts/Layout.astro";
 ---
 
 <Layout>
-	<div class="h-[calc(100vh-24px)] w-[calc(100vw-24px) bg-[#F2F3FC]">
-		
-		<main class="mx-auto max-w-2xl h-full py-32 px-8 flex flex-col gap-4">
-
-
-			<div class="relative w-full h-[250px] border-[1.5px] flex border-black/8 rounded-xl bg-black/1 px-4 py-3 justify-center items-center">
-
-
-
-				<div class="absolute flex top-3 left-4 text-sm">
-			     	
-				    	00:00
-				    
-
-					
-			    	
-				</div>
-
-				<div class="absolute flex gap-3 top-3 right-4">
-						<div>
-				    	<IconVolumeOff />
-				       </div>
-			         	<div>
-				    	<IconVolumeOff />
-				       </div>
-					</div>
-				
-
-
-				
-					<div class="size-12 bg-amber-300">
-
-					</div>
-				
-
-				<div class="absolute bottom-3 right-4">
-					<div>
-				    	<IconVolumeOff />
-				       </div>
-
-				</div>
-
-
-
-
-      		</div>
-		   <h1>Hello World!</h1>
-		</main>
-	
-	</div>
-	
-	<!-- <BreathCircle client:idle></BreathCircle> -->
+  <div class="h-[calc(100vh-24px)] w-[calc(100vw-24px) bg-[#F2F3FC]">
+    <main class="mx-auto max-w-2xl h-full py-32 px-8 flex flex-col gap-4">
+      <BreathingApp client:load />
+    </main>
+  </div>
 </Layout>

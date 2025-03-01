@@ -23,7 +23,7 @@ const WaveAnimation = {
       transform: "translateY(25px)",
     },
     {
-      name: "inhaleHold",
+      name: "holdInhale",
       duration: 7000,
       transform: "translateY(25px)",
     },
@@ -33,7 +33,7 @@ const WaveAnimation = {
       transform: "translateY(0)",
     },
     {
-      name: "exhaleHold",
+      name: "holdExhale",
       duration: 0,
       transform: "translateY(0)",
     },

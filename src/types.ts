@@ -4,6 +4,13 @@ export type Phase = {
   transform: string;
 };
 
+export type Exercise = '4-7-8-0' | 'Box Breathing' | 'Custom';
+
+export type BreathingExercise = {
+  id: Exercise;
+  name: string;
+  phases: Record<string, number>;
+}
 
 
 export interface AnimationProps {

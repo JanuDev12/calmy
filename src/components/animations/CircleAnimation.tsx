@@ -22,22 +22,18 @@ const CircleAnimation = {
   phases: [
     {
       name: "inhale",
-      duration: 4000,
       transform: "scale(1.5)",
     },
     {
-      name: "inhaleHold",
-      duration: 7000,
+      name: "holdInhale",
       transform: "scale(1.5)",
     },
     {
       name: "exhale",
-      duration: 8000,
       transform: "scale(1)",
     },
     {
-      name: "exhaleHold",
-      duration: 0,
+      name: "holdExhale",
       transform: "scale(1)",
     },
   ],

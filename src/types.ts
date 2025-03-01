@@ -1,26 +1,27 @@
-export type Phase = {
-  name: string;
-  duration: number;
-  transform: string;
-};
+export type Phases = "inhale" | "holdInhale" | "exhale" | "holdExhale";
 
-export type Exercise = '4-7-8-0' | 'Box Breathing' | 'Custom';
+export type Exercise = "4-7-8-0" | "Box Breathing" | "Custom";
 
 export type BreathingExercise = {
   id: Exercise;
   name: string;
-  phases: Record<string, number>;
+  phases: Record<Phases, number>;
 }
 
+/* export type PhaseAnimation = {
+  name: Phases;
+  duration: number;
+  transform: string;
+}; */
 
-export interface AnimationProps {
-  phase: Phase["name"];
+export type AnimationProps = {
   variants: Record<string, any>;
+  currentVariant: Phases;
 }
 
 export type Animation = {
     id: string;
     name: string;
-    phases: Phase[];
-    component: React.ComponentType<{phases: Phase[]}>;
+    phases: Record<Phases, string>;
+    component: React.ComponentType<AnimationProps>;
 }

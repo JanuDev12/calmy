@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from "./ui/select";
 import { animations } from "./animations";
-import type { BreathingExercise, Exercise } from "@/types";
+import type { BreathingExercise, Exercise, Phases } from "@/types";
 
 type AnimationType = keyof typeof animations;
 
@@ -57,21 +57,25 @@ const BREATHING_EXERCISES: Record<Exercise, BreathingExercise> = {
 };
 
 function BreathingApp() {
+
   // Circle Animation as default
   const [selectedAnimation, setSelectedAnimation] = useState<AnimationType>("circle");
 
   // Select Breathing exercise as default
   const [selectedExercise, setSelectedExercise] = useState<keyof typeof BREATHING_EXERCISES>("4-7-8-0")
-  const [customPhases, setCustomPhases] = useState(BREATHING_EXERCISES.Custom.phases)
+
+
+ /*  const [customPhases, setCustomPhases] = useState(BREATHING_EXERCISES.Custom.phases)
+ */
 
   // Getting initial Phase of selected animation
-  const initialPhase = useMemo(
+  /* const initialPhase = useMemo(
     () => animations[selectedAnimation].phases[0].name,
     [selectedAnimation]
-  )
+  ) */
 
   // Storing the initial Phase in local state for logic
-  const [phase, setPhase] = useState<string>(initialPhase);
+  const [phase, setPhase] = useState<string>("inhale");
 
   const [isRunning, setIsRunning] = useState(false);
 
@@ -81,14 +85,13 @@ function BreathingApp() {
   const timerInterval = useRef(0);
 
   // Selecting current animation for use
-  const currentAnimation = useMemo(
-    () => animations[selectedAnimation],
+  const currentAnimation = useMemo(() => animations[selectedAnimation],
     [selectedAnimation]
   );
 
   const currentExercise = useMemo(() => (
     BREATHING_EXERCISES[selectedExercise]
-  ),[selectedExercise, customPhases]);
+  ),[selectedExercise]);
 
  /*  const PHASE_INDEX = useMemo(
     () => new Map(currentAnimation.phases.map((p, i) => [p.name, i])),
@@ -96,10 +99,25 @@ function BreathingApp() {
   ); */
 
   // Creating animations for each phase
-  const animationVariants = useMemo(
-    () =>
-      currentAnimation.phases.reduce(
-        (acc, phase) => ({
+     const animationVariants = useMemo(() => {
+      return Object.entries(currentAnimation.phases).reduce(
+        (acc, [animPhase, transform]) => {
+          const exerciseDuration = currentExercise.phases[animPhase as Phases] || 0;
+          return {
+            ...acc,
+            [animPhase]: {
+              transform: transform,
+              transition: { duration: exerciseDuration / 1000 },
+            },
+          };
+        },
+        {}
+      );
+     }, [currentAnimation, currentExercise.phases])
+
+ /*  const animationVariants = useMemo(() =>
+      currentAnimation.phases.reduce((acc, phase) => ({
+
           ...acc,
           [phase.name]: {
             transform: phase.transform,
@@ -111,13 +129,13 @@ function BreathingApp() {
       ),
     [currentAnimation, currentExercise.phases]
   );
-
+ */
 
   const resetBreathing = () => {
     if (isRunning) {
       clearTimeout(timerRef.current);
       clearInterval(timerInterval.current);
-      setPhase(currentAnimation.phases[0].name);
+      setPhase(Object.keys(currentExercise.phases)[0] as Phases);
       setTimer(0);
     }
     setIsRunning(false);
@@ -128,8 +146,8 @@ function BreathingApp() {
     if (!isRunning) return;
 
     /* const currentPhase = PHASE_INDEX.get(phase)!; */
-   
-/* 
+
+    /* 
     const { duration } = currentAnimation.phases[currentPhase];
 
     timerRef.current = setTimeout(() => {
@@ -137,18 +155,19 @@ function BreathingApp() {
       setPhase(currentAnimation.phases[nextPhase].name);
     }, duration); */
 
-      const phaseNames = Object.keys(currentExercise.phases);
-      const currentPhaseIndex = phaseNames.indexOf(phase);
+    const phaseKeys = Object.keys(currentExercise.phases);
+    const currentPhaseIndex = phaseKeys.indexOf(phase);
 
+    // 1. Obtener duración de la FASE ACTUAL
+    const currentPhase = phaseKeys[currentPhaseIndex] as Phases;
+    const duration = currentExercise.phases[currentPhase];
+
+    timerRef.current = setTimeout(() => {
+      // 2. Calcular siguiente fase solo cuando termine la actual
       const nextPhaseIndex = getNextPhase(currentPhaseIndex);
-      const nextPhase = phaseNames[nextPhaseIndex];
-      const duration = currentExercise.phases[nextPhase];
-
-      timerRef.current = setTimeout(() => {
-        setPhase(nextPhase);
-      }, duration);
-
-    return () =>  clearTimeout(timerRef.current);
+      const nextPhase = phaseKeys[nextPhaseIndex] as Phases;
+      setPhase(nextPhase);
+    }, duration); // <-- Usar duración de la fase ACTUAL
   }, [phase, isRunning, currentExercise.phases]);
 
   // Timer of breathing
@@ -173,12 +192,12 @@ function BreathingApp() {
 
     // Loop for skip to the next phase if its 0s
     do {
-      nextPhase = (nextPhase + 1) % currentAnimation.phases.length;
+      nextPhase = (nextPhase + 1) % phaseNames.length;
       i++;
       if (i >= phaseNames.length) {
         console.log("Infnite Loop detected");
       }
-    } while (currentExercise.phases[phaseNames[nextPhase]] === 0);
+    } while (currentExercise.phases[phaseNames[nextPhase] as Phases] === 0);
 
     return nextPhase;
   }
@@ -231,7 +250,7 @@ function BreathingApp() {
           <SelectContent>
             {Object.values(animations).map((anim) => (
               <SelectItem key={anim.id} value={anim.id}>
-                {anim.displayName}
+                {anim.name}
               </SelectItem>
             ))}
           </SelectContent>

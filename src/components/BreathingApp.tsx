@@ -1,39 +1,17 @@
-import { Activity, Ear, Maximize2, VolumeOff, Wind } from 'lucide-react';
-import { Button } from './ui/button';
+import { Maximize2, VolumeOff, Wind } from "lucide-react";
+import { Button } from "./ui/button";
 
-import { motion } from "motion/react";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
-import type { Phase } from '@/types';
-import { animations } from './animations';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "./ui/select";
+import { animations } from "./animations";
 
-// Define the phases of breathing
-/* const PHASES: Phase[] = [
-  {
-    name: "inhale",
-    duration: 4000,
-    transform: "scale(1.5)",
-  },
-  {
-    name: "inhaleHold",
-    duration: 7000,
-    transform: "scale(1.5)",
-  },
-  {
-    name: "exhale",
-    duration: 8000,
-    transform: "scale(1)",
-  },
-  {
-    name: "exhaleHold",
-    duration: 0,
-    transform: "scale(1)",
-  },
-];
- */
-// Creating map for more efficiency
-/* const PHASE_INDEX = new Map(PHASES.map((phase, index) => [phase.name, index]));
- */
+type AnimationType = keyof typeof animations;
 
 const formatTime = (ms: number): string => {
   const minutes = Math.floor(ms / 60000);
@@ -44,119 +22,113 @@ const formatTime = (ms: number): string => {
   )}`;
 };
 
-type AnimationType = keyof typeof animations;
-
 function BreathingApp() {
+  // Circle Animation as default
+  const [selectedAnimation, setSelectedAnimation] = useState<AnimationType>("circle");
 
-    const [selectedAnimation, setSelectedAnimation] = useState<AnimationType>("circle");
-     // Initial Phase (inhale)
-    const [phase, setPhase] = useState<string>(animations.circle.phases[0].name);
-      const [isRunning, setIsRunning] = useState(false);
+  // Getting initial Phase of selected animation
+  const initialPhase = useMemo(
+    () => animations[selectedAnimation].phases[0].name,
+    [selectedAnimation]
+  )
 
-    // Timers
-      const timerRef = useRef(0);
-      const [timer, setTimer] = useState(0);
-      const timerInterval = useRef(0)
+  // Storing the initial Phase in local state for logic
+  const [phase, setPhase] = useState<string>(initialPhase);
 
-    const currentAnimation = useMemo(() => animations[selectedAnimation], [selectedAnimation]);
+  const [isRunning, setIsRunning] = useState(false);
 
-    const PHASE_INDEX = useMemo(
-      () => new Map(currentAnimation.phases.map((p, i) => [p.name, i])),
-      [currentAnimation]
-    );
-    
-      // Creating animations for each phase
-      const animationVariants = useMemo(
-        () =>
-          /*  {
-        return PHASES.reduce((variants, config) => {
-          variants[config.name] = {
-            transform: config.transform,
+  // Timers
+  const timerRef = useRef(0);
+  const [timer, setTimer] = useState(0);
+  const timerInterval = useRef(0);
+
+  // Selecting current animation for use
+  const currentAnimation = useMemo(
+    () => animations[selectedAnimation],
+    [selectedAnimation]
+  );
+
+  const PHASE_INDEX = useMemo(
+    () => new Map(currentAnimation.phases.map((p, i) => [p.name, i])),
+    [currentAnimation]
+  );
+
+  // Creating animations for each phase
+  const animationVariants = useMemo(
+    () =>
+      currentAnimation.phases.reduce(
+        (acc, phase) => ({
+          ...acc,
+          [phase.name]: {
+            transform: phase.transform,
             // Motion expects seconds
-            transition: { duration: config.duration / 1000 },
-          };
-          return variants;
-        }, {}); */
-
-          currentAnimation.phases.reduce(
-            (acc, phase) => ({
-              ...acc,
-              [phase.name]: {
-                transform: phase.transform,
-                // Motion expects seconds
-                transition: { duration: phase.duration / 1000 },
-              },
-            }),
-            {}
-          ),
-        [currentAnimation]
-      );
-        
-        
-       
-      
-    
-      const resetBreathing = () => {
-        if (isRunning) {
-          if (timerRef.current) clearTimeout(timerRef.current);
-          if (timerInterval.current) clearInterval(timerInterval.current);
-          setPhase(currentAnimation.phases[0].name);
-          setTimer(0);
-        }
-        setIsRunning(false);
-      };
-    
-      // useEffect for transitioning to each phase of breathing
-      useEffect(() => {
-        if (!isRunning) return;
-    
-        const currentPhase = PHASE_INDEX.get(phase)!;
-    
-        const { duration } = currentAnimation.phases[currentPhase];
-    
-        timerRef.current = setTimeout(() => {
-          const nextPhase = getNextPhase(currentPhase);
-          setPhase(currentAnimation.phases[nextPhase].name);
-        }, duration);
-    
-        return () => {
-          if (timerRef.current) clearTimeout(timerRef.current);
-        };
-      }, [phase, isRunning]);
-
-      useEffect(() => {
-        if (isRunning) {
-            timerInterval.current = setInterval(() => {
-                setTimer(prev => prev + 1000);
-            }, 1000);
-        }else {
-            if (timerRef.current) clearInterval(timerInterval.current)
-        }
-
-        return () => {
-    if (timerInterval.current) clearInterval(timerInterval.current);
-  };
-      }, [isRunning])
+            transition: { duration: phase.duration / 1000 },
+          },
+        }),
+        {}
+      ),
+    [currentAnimation]
+  );
 
 
-      
-function getNextPhase(currentPhase: number): number {
-  let i = 0;
-  let nextPhase = currentPhase;
-
-  // Loop for skip to the next phase if its 0ms
-  do {
-    nextPhase = (nextPhase + 1) % currentAnimation.phases.length;
-    i++;
-    if (i > currentAnimation.phases.length) {
-      console.log("Infnite Loop detected");
+  const resetBreathing = () => {
+    if (isRunning) {
+      clearTimeout(timerRef.current);
+      clearInterval(timerInterval.current);
+      setPhase(currentAnimation.phases[0].name);
+      setTimer(0);
     }
-  } while (currentAnimation.phases[nextPhase].duration === 0);
+    setIsRunning(false);
+  };
 
-  return nextPhase;
-}
+  // useEffect for transitioning to each phase of breathing
+  useEffect(() => {
+    if (!isRunning) return;
 
+    const currentPhase = PHASE_INDEX.get(phase)!;
 
+    const { duration } = currentAnimation.phases[currentPhase];
+
+    timerRef.current = setTimeout(() => {
+      const nextPhase = getNextPhase(currentPhase);
+      setPhase(currentAnimation.phases[nextPhase].name);
+    }, duration);
+
+    return () => {
+      clearTimeout(timerRef.current);
+    };
+  }, [phase, isRunning, currentAnimation, PHASE_INDEX]);
+
+  // Timer of breathing
+  useEffect(() => {
+    if (isRunning) {
+      timerInterval.current = setInterval(() => {
+        setTimer((prev) => prev + 1000);
+      }, 1000);
+    } else {
+       clearInterval(timerInterval.current);
+    }
+
+    return () => {
+       clearInterval(timerInterval.current);
+    };
+  }, [isRunning]);
+
+  function getNextPhase(currentPhase: number): number {
+    let i = 0;
+    let nextPhase = currentPhase;
+
+    // Loop for skip to the next phase if its 0s
+    do {
+      nextPhase = (nextPhase + 1) % currentAnimation.phases.length;
+      i++;
+      if (i >= currentAnimation.phases.length) {
+        console.log("Infnite Loop detected");
+      }
+    } while (currentAnimation.phases[nextPhase].duration === 0);
+
+    return nextPhase;
+  }
 
   return (
     <>
@@ -169,16 +141,10 @@ function getNextPhase(currentPhase: number): number {
           <Wind size={18} className="cursor-pointer" />
         </div>
 
-        {/*  SELECT ANIMATION */}
-        {/* <div className=" w-full h-full bg-amber-300"></div> */}
-        {/* <motion.div
-          className="mx-auto size-32 rounded-full bg-blue-300"
+        {/*  BREATHING ANIMATION */}
+        <currentAnimation.component
           variants={animationVariants}
-          animate={isRunning ? phase : undefined}
-          initial={{ transform: "scale(1)" }}
-          transition={{ type: "tween" }}
-        ></motion.div> */}
-        <currentAnimation.component variants={animationVariants} currentVariant={isRunning ? phase : "initial"}
+          currentVariant={isRunning ? phase : "initial"}
         />
 
         <div className="absolute bottom-3 right-4">
@@ -201,19 +167,19 @@ function getNextPhase(currentPhase: number): number {
         </Button>
         <span>Fase actual de la respiracion: {phase}</span>
 
-        {/* COMPONENT FOR SELECT ANIMATION */}
-        <Select value={selectedAnimation} onValueChange={(value: AnimationType) => setSelectedAnimation(value)}>
+        {/* SELECT ANIMATION */}
+        <Select
+          value={selectedAnimation}
+          onValueChange={(value: AnimationType) => setSelectedAnimation(value)}
+        >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Select animation" />
           </SelectTrigger>
           <SelectContent>
-           {/*  <SelectItem defaultValue="circle" value="circle">Circle</SelectItem>
-            <SelectItem value="wave">Wave</SelectItem>
-            <SelectItem value="box">Box</SelectItem> */}
             {Object.values(animations).map((anim) => (
-                <SelectItem key={anim.id} value={anim.id}>
-                    {anim.displayName}
-                </SelectItem>
+              <SelectItem key={anim.id} value={anim.id}>
+                {anim.displayName}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -222,4 +188,4 @@ function getNextPhase(currentPhase: number): number {
   );
 }
 
-export default BreathingApp
+export default BreathingApp;
